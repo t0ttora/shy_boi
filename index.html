@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>SHY BOI | Autonomous Evasion System v2.2</title>
+        <meta name="description" content="SHY BOI v2.2 is an anthropomorphic robotic system engineered to simulate Social Anxiety Disorder using Ultrasonic & IR fusion for autonomous evasion maneuvers.">
+        <link rel="canonical" href="https://t0ttora.github.io/shy_boi/">
+        <meta name="theme-color" content="#050505">
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="SHY BOI | Autonomous Evasion System v2.2">
+        <meta property="og:description" content="A robotic system that interprets physical proximity as distress and executes autonomous evasion maneuvers.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://t0ttora.github.io/shy_boi/">
+        <meta property="og:image" content="https://t0ttora.github.io/shy_boi/assets/og-image.png">
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="SHY BOI | Autonomous Evasion System v2.2">
+        <meta name="twitter:description" content="A robotic system that interprets physical proximity as distress and executes autonomous evasion maneuvers.">
+        <meta name="twitter:image" content="https://t0ttora.github.io/shy_boi/assets/og-image.png">
+
+        <!-- Favicon & Manifest -->
+        <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+        <link rel="manifest" href="/site.webmanifest">
+
+        <!-- Robots -->
+        <meta name="robots" content="index, follow">
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "SHY BOI | Autonomous Evasion System v2.2",
+            "description": "An anthropomorphic robotic system engineered to simulate Social Anxiety Disorder using Ultrasonic & IR fusion for autonomous evasion.",
+            "inLanguage": "en",
+            "author": {
+                "@type": "Person",
+                "name": "t0ttora"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "SHY BOI",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://t0ttora.github.io/shy_boi/assets/og-image.png"
+                }
+            },
+            "image": "https://t0ttora.github.io/shy_boi/assets/og-image.png",
+            "mainEntityOfPage": "https://t0ttora.github.io/shy_boi/"
+        }
+        </script>
+    
+    <!-- React & ReactDOM (UMD for stability) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #050505;
+            color: #E0E0E0;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+            touch-action: pan-y;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Game specific: disable scroll when touching canvas */
+        canvas {
+            touch-action: none;
+        }
+
+        /* Shake Animation Class */
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // --- ICON DEFINITIONS ---
+        const createIcon = (pathData) => ({ size = 24, color = "currentColor", className = "", strokeWidth = 2, ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                {Array.isArray(pathData) ? pathData.map((d, i) => <path key={i} d={d} />) : <path d={pathData} />}
+            </svg>
+        );
+
+        const Activity = createIcon("M22 12h-4l-3 9L9 3l-3 9H2");
+        const Cpu = createIcon(["M5 9h14", "M5 15h14", "M5 9v6", "M19 9v6", "M9 5v4", "M9 15v4", "M15 5v4", "M15 15v4", "M2 12h3", "M19 12h3", "M12 2v3", "M12 19v3"]);
+        const Wifi = createIcon(["M5 12.55a11 11 0 0 1 14.08 0", "M1.42 9a16 16 0 0 1 21.16 0", "M8.53 16.11a6 6 0 0 1 6.95 0", "M12 20h.01"]);
+        const Battery = createIcon(["M23 13v-2", "M17 6h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2", "M7 18H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2", "M7 6v12", "M17 6v12"]);
+        const AlertTriangle = createIcon(["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z", "M12 9v4", "M12 17h.01"]);
+        const Terminal = createIcon(["M4 17l6-6-6-6", "M12 19h8"]);
+        const Layers = createIcon(["M12 2L2 7l10 5 10-5-10-5z", "M2 17l10 5 10-5", "M2 12l10 5 10-5"]);
+        const Zap = createIcon("M13 2L3 14h9l-1 8 10-12h-9l1-8z");
+        const Radio = createIcon(["M4.9 19.1C1 15.2 1 8.8 4.9 4.9", "M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5", "M12 12h.01"]);
+        const Gamepad2 = createIcon(["M6 11h4", "M8 9v4", "M15 12h.01", "M18 10h.01", "M2 12h.01", "M22 12h.01", "M2 17h20a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"]);
+        const ShieldAlert = createIcon(["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", "M12 8v4", "M12 16h.01"]);
+        const FileText = createIcon(["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z", "M14 2v6h6", "M16 13H8", "M16 17H8", "M10 9H8"]);
+        const Database = createIcon(["M3 5c0-1.7 4-3 9-3s9 1.3 9 3", "M21 5v14c0 1.7-4 3-9 3s-9-1.3-9-3V5", "M3 12c0 1.7 4 3 9 3s9-1.3 9-3"]);
+
+        // --- SUB-COMPONENTS ---
+        const ProgressBar = ({ label, value, color }) => (
+            <div>
+                <div className="flex justify-between mb-1">
+                    <span className="text-xs text-gray-400 font-bold">{label}</span>
+                    <span className="text-xs text-white">{value}%</span>
+                </div>
+                <div className="w-full bg-[#222] h-1.5 rounded-full overflow-hidden">
+                    <div className="h-full transition-all duration-500" style={{ width: `${value}%`, backgroundColor: color }}></div>
+                </div>
+            </div>
+        );
+
+        const SpecCard = ({ icon: Icon, label, value, sub }) => (
+            <div className="bg-[#111] border border-[#222] p-4 flex flex-col justify-between hover:border-[#FF5F00] transition-colors group h-full">
+                <Icon className="text-gray-500 group-hover:text-[#FF5F00] mb-2 transition-colors" size={24}/>
+                <div>
+                    <div className="text-[10px] text-gray-500 uppercase font-bold">{label}</div>
+                    <div className="text-white font-bold text-lg leading-tight">{value}</div>
+                    <div className="text-[10px] text-gray-400 mt-1">{sub}</div>
+                </div>
+            </div>
+        );
+
+        const LogCard = ({ id, type, title, desc, fix }) => (
+            <div className="bg-[#111] border border-[#222] p-5 relative group overflow-hidden">
+                <div className="flex justify-between items-start mb-2">
+                    <div className="flex flex-col">
+                        <span className="text-[#FF5F00] text-[10px] font-bold">{id}</span>
+                        <span className={`text-[10px] font-bold px-1 w-max mt-1 ${
+                            type === 'CRITICAL' ? 'bg-red-900 text-red-200' : 
+                            type === 'WARNING' ? 'bg-yellow-900 text-yellow-200' : 'bg-blue-900 text-blue-200'
+                        }`}>{type}</span>
+                    </div>
+                </div>
+                <h3 className="text-white font-bold text-lg mb-2">{title}</h3>
+                <p className="text-gray-400 text-sm mb-3 leading-relaxed border-l-2 border-gray-700 pl-3">{desc}</p>
+                <div className="bg-[#050505] p-3 text-xs text-[#00FF41] font-mono border border-[#222]">
+                    <span className="text-[#FF5F00]">&gt;&gt; FIX:</span> {fix}
+                </div>
+            </div>
+        );
+
+        // --- CONTENT SECTIONS ---
+        const OverviewContent = () => (
+            <div className="space-y-8 animate-fade-in">
+                <div className="bg-[#111] border-l-4 border-[#FF5F00] p-6 md:p-8 relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(255,95,0,0.1)]">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="w-2 h-2 bg-[#FF5F00] animate-pulse"></span>
+                            <span className="text-[#FF5F00] text-xs font-bold tracking-[0.2em] uppercase">System Online</span>
+                        </div>
+                        <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter">
+                          SHY BOI <span className="text-[#333]">V2.2</span>
+                        </h1>
+                        <p className="text-gray-400 text-sm md:text-base max-w-2xl leading-relaxed">
+                          An anthropomorphic robotic system engineered to simulate <strong>Social Anxiety Disorder</strong>. 
+                          It interprets physical proximity as emotional distress. Using <strong>Ultrasonic & IR fusion</strong>, 
+                          it detects "social threats" (humans) and executes autonomous evasion maneuvers.
+                        </p>
+                    </div>
+                    <Cpu size={200} strokeWidth={0.5} className="absolute right-[-50px] top-[-50px] opacity-10 pointer-events-none text-white" />
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <SpecCard icon={Cpu} label="Controller" value="ESP-32" sub="Dual Core 240MHz" />
+                    <SpecCard icon={Zap} label="Driver" value="TB6612FNG" sub="High Eff. H-Bridge" />
+                    <SpecCard icon={Wifi} label="Protocol" value="nRF24L01+" sub="PA/LNA Long Range" />
+                    <SpecCard icon={Activity} label="IMU" value="MPU-6050" sub="Gesture Telemetry" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                  <div className="bg-[#0A0A0A] border border-[#222] p-6">
+                      <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                          <Database size={18} className="text-[#FF5F00]"/> PROJECT SCOPE
+                      </h3>
+                      <ul className="space-y-3 text-sm text-gray-400">
+                          <li className="flex gap-3">
+                              <span className="text-[#FF5F00] font-bold">01.</span>
+                              <span><strong>Wearable Teleoperation:</strong> Gesture-based glove (Pitch/Roll) replaces joysticks.</span>
+                          </li>
+                          <li className="flex gap-3">
+                              <span className="text-[#FF5F00] font-bold">02.</span>
+                              <span><strong>Behavioral Override:</strong> Autonomous evasion has priority over manual input.</span>
+                          </li>
+                      </ul>
+                  </div>
+                  <div className="bg-[#0A0A0A] border border-[#222] p-6">
+                      <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                          <FileText size={18} className="text-[#FF5F00]"/> IMPACT
+                      </h3>
+                      <p className="text-sm text-gray-400 leading-relaxed mb-4">
+                          "Demonstrates that emotional traits can be coded into machines using simple sensor thresholds."
+                      </p>
+                      <div className="text-xs font-mono text-gray-500 bg-[#111] p-3 border border-[#222]">
+                          TARGET: Human-Robot Interaction (HRI) Studies.
+                      </div>
+                  </div>
+                </div>
+            </div>
+        );
+
+        const LogsContent = () => (
+            <div className="space-y-6 animate-fade-in">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white tracking-tight">ENGINEERING LOGS</h2>
+                    <div className="text-[#FF5F00] text-xs font-bold border border-[#FF5F00] px-2 py-1">SOURCE: MDR.PDF</div>
+                </div>
+
+                <div className="space-y-4">
+                    <LogCard 
+                        id="#ERR-001" type="CRITICAL" title="L298N Thermal Failure" 
+                        desc="Initial L298N driver caused 2V+ drop and overheating, failing the 'smooth motion' requirement."
+                        fix="Replaced with TB6612FNG. Result: Cooler operation, better torque."
+                    />
+                     <LogCard 
+                        id="#ERR-002" type="WARNING" title="Ultrasonic Signal Jitter" 
+                        desc="HC-SR04 readings fluctuated on soft surfaces, triggering false 'Panic Modes'."
+                        fix="Added Moving Average Filter (Window: 5) & FS80 IR confirmation."
+                    />
+                     <LogCard 
+                        id="#DECISION-003" type="INFO" title="Chassis: 4WD to 2WD" 
+                        desc="4WD skid-steering created excessive friction. Robot struggled to turn in place."
+                        fix="Pivoted to 2WD + Caster Wheel. Improved turn radius & battery life."
+                    />
+                </div>
+
+                <div className="bg-[#111] border border-[#222] p-6 mt-8">
+                    <h3 className="text-white font-bold mb-4">SYSTEM HEALTH</h3>
+                    <div className="space-y-4">
+                        <ProgressBar label="BATTERY VOLTAGE (7.4V Nominal)" value={90} color="#FF5F00" />
+                        <ProgressBar label="SIGNAL INTEGRITY (nRF24L01)" value={82} color="#00FF41" />
+                    </div>
+                </div>
+            </div>
+        );
+
+        const ArchitectureContent = () => (
+            <div className="space-y-8 animate-fade-in">
+                <div className="bg-[#111] border border-[#222] p-8 overflow-x-auto">
+                    <h2 className="text-white font-bold mb-8">DATA FLOW ARCHITECTURE</h2>
+                    <div className="min-w-[600px] flex items-center justify-between text-sm">
+                        {/* Glove */}
+                        <div className="w-48 bg-[#0A0A0A] border border-gray-700 p-4 relative">
+                            <div className="absolute -top-3 left-4 bg-[#FF5F00] text-black text-[10px] font-bold px-2">TX NODE</div>
+                            <div className="text-white font-bold mb-2">GLOVE</div>
+                            <ul className="space-y-2 text-gray-400 text-xs">
+                                <li className="flex justify-between border-b border-[#222] pb-1"><span>MPU-6050</span> <span>I2C</span></li>
+                                <li className="flex justify-between border-b border-[#222] pb-1"><span>Flex Sensor</span> <span>ADC</span></li>
+                                <li className="flex justify-between"><span>ESP-32</span> <span>MCU</span></li>
+                            </ul>
+                        </div>
+                        {/* Arrow */}
+                        <div className="flex-1 h-[2px] bg-gray-700 relative mx-4">
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] text-[#FF5F00] font-bold bg-[#050505] px-2 whitespace-nowrap">
+                                nRF24L01 (2.4GHz)
+                            </div>
+                        </div>
+                        {/* Robot */}
+                        <div className="w-48 bg-[#0A0A0A] border border-gray-700 p-4 relative">
+                            <div className="absolute -top-3 left-4 bg-blue-500 text-black text-[10px] font-bold px-2">RX NODE</div>
+                            <div className="text-white font-bold mb-2">ROBOT</div>
+                            <ul className="space-y-2 text-gray-400 text-xs">
+                                <li className="flex justify-between border-b border-[#222] pb-1"><span>nRF Module</span> <span>SPI</span></li>
+                                <li className="flex justify-between border-b border-[#222] pb-1"><span>TB6612FNG</span> <span>PWM</span></li>
+                                <li className="flex justify-between"><span>HC-SR04</span> <span>GPIO</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-[#111] p-6 border border-[#222]">
+                        <h3 className="text-[#FF5F00] font-bold mb-2 text-sm">POWER</h3>
+                        <p className="text-gray-400 text-sm">
+                            <strong>2-cell 7.4V Li-ion</strong> battery. LM2596 Buck Converters regulate to 6.0V (Motors) and 3.3V (Logic).
+                        </p>
+                    </div>
+                    <div className="bg-[#111] p-6 border border-[#222]">
+                        <h3 className="text-[#FF5F00] font-bold mb-2 text-sm">SAFETY</h3>
+                        <p className="text-gray-400 text-sm">
+                            Independent thread interrupt: If <strong>HC-SR04</strong> detects distance &lt; 20cm, it forces `reverseArcRight()` instantly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- GAME COMPONENT (V2.2 - Recovery Logic & Image Support) ---
+
+        const GameContent = () => {
+            const canvasRef = useRef(null);
+            const playerImg = useRef(new Image());
+
+            const [gameState, setGameState] = useState('MENU'); // MENU, PLAYING, GAMEOVER
+            const [finalScore, setFinalScore] = useState(0);
+            const [failReason, setFailReason] = useState("");
+            
+            // Refs for Game Loop State (Mutable)
+            const stateRef = useRef({
+                playerLane: 2, // 1, 2, 3
+                playerY: 0,
+                obstacles: [],
+                batteries: [],
+                speed: 6,
+                score: 0,
+                strikes: 0,
+                recoveryTimer: 0, // Time to recover from panic
+                lastSpawnTime: 0,
+                frameCount: 0,
+                batteryLevel: 100,
+                shake: 0
+            });
+
+            // Load Image
+            useEffect(() => {
+                playerImg.current.src = "https://i.imgur.com/tHcb9zJ.png";
+            }, []);
+
+            useEffect(() => {
+                if (gameState !== 'PLAYING') return;
+
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                let animationFrameId;
+
+                // Initialize State
+                stateRef.current = {
+                    playerLane: 2,
+                    playerY: canvas.height - 120,
+                    obstacles: [],
+                    batteries: [],
+                    speed: 6, // Base speed
+                    score: 0,
+                    strikes: 0,
+                    recoveryTimer: 0,
+                    lastSpawnTime: 0,
+                    frameCount: 0,
+                    batteryLevel: 100,
+                    shake: 0
+                };
+
+                const LANE_WIDTH = canvas.width / 3;
+                
+                // --- CONTROLS ---
+                const handleKeyDown = (e) => {
+                    if (e.key === 'ArrowLeft' && stateRef.current.playerLane > 1) stateRef.current.playerLane--;
+                    if (e.key === 'ArrowRight' && stateRef.current.playerLane < 3) stateRef.current.playerLane++;
+                };
+
+                let touchStartX = 0;
+                const handleTouchStart = (e) => {
+                    touchStartX = e.touches[0].clientX;
+                };
+                const handleTouchEnd = (e) => {
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const diffX = touchStartX - touchEndX;
+                    
+                    if (Math.abs(diffX) > 30) {
+                        if (diffX > 0 && stateRef.current.playerLane > 1) stateRef.current.playerLane--; // Swipe Left
+                        else if (diffX < 0 && stateRef.current.playerLane < 3) stateRef.current.playerLane++; // Swipe Right
+                    }
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+                canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+                // --- GAME LOOP ---
+                const loop = (timestamp) => {
+                    const state = stateRef.current;
+                    const width = canvas.width;
+                    const height = canvas.height;
+                    const laneWidth = width / 3;
+
+                    // 1. UPDATE STATE
+                    state.frameCount++;
+                    state.score++;
+                    
+                    // Battery Decay
+                    if (state.frameCount % 10 === 0) {
+                        state.batteryLevel -= 0.2; 
+                    }
+                    if (state.batteryLevel <= 0) {
+                        setFailReason("BATTERY DEPLETED");
+                        setFinalScore(Math.floor(state.score / 10));
+                        setGameState('GAMEOVER');
+                        return;
+                    }
+
+                    // Recovery Logic (Subway Surfers Mechanic)
+                    if (state.strikes === 1) {
+                        state.recoveryTimer--;
+                        if (state.recoveryTimer <= 0) {
+                            state.strikes = 0; // Threat gone
+                        }
+                    }
+
+                    // DIFFICULTY SCALING
+                    if (state.score % 300 === 0) state.speed += 0.5;
+
+                    // Screen Shake Decay
+                    if (state.shake > 0) state.shake--;
+
+                    // Spawn Logic
+                    const spawnThreshold = Math.max(500, 1500 - (state.speed * 60)); 
+
+                    if (timestamp - state.lastSpawnTime > spawnThreshold) {
+                        const lane = Math.floor(Math.random() * 3) + 1;
+                        
+                        // 15% Chance to spawn Battery
+                        if (Math.random() < 0.15) {
+                            state.batteries.push({ lane, y: -100, hit: false, id: Math.random() });
+                        } else {
+                            state.obstacles.push({ lane, y: -100, hit: false, id: Math.random() });
+                        }
+                        state.lastSpawnTime = timestamp;
+                    }
+
+                    // Move Entities
+                    state.obstacles.forEach(obs => obs.y += state.speed);
+                    state.batteries.forEach(bat => bat.y += state.speed);
+                    
+                    // Collision Check: Obstacles
+                    state.obstacles.forEach(obs => {
+                        if (!obs.hit && obs.y > state.playerY - 40 && obs.y < state.playerY + 40 && obs.lane === state.playerLane) {
+                            obs.hit = true;
+                            state.strikes++;
+                            state.recoveryTimer = 600; // Reset recovery timer (10 seconds @ 60fps)
+                            state.shake = 20; // Trigger Shake
+                            state.batteryLevel -= 15; // Hit drains battery
+                            
+                            // Game Over Condition
+                            if (state.strikes >= 2) {
+                                setFailReason("SOCIAL THREAT IMMINENT");
+                                setFinalScore(Math.floor(state.score / 10));
+                                setGameState('GAMEOVER');
+                                return;
+                            }
+                        }
+                    });
+
+                    // Collision Check: Batteries
+                    state.batteries.forEach(bat => {
+                        if (!bat.hit && bat.y > state.playerY - 40 && bat.y < state.playerY + 40 && bat.lane === state.playerLane) {
+                            bat.hit = true;
+                            state.batteryLevel = Math.min(100, state.batteryLevel + 20); // Restore Battery
+                        }
+                    });
+
+                    // Cleanup
+                    state.obstacles = state.obstacles.filter(obs => obs.y < height);
+                    state.batteries = state.batteries.filter(bat => bat.y < height && !bat.hit);
+
+                    // 2. DRAWING
+                    
+                    // Apply Shake
+                    ctx.save();
+                    if (state.shake > 0) {
+                        const dx = (Math.random() - 0.5) * state.shake * 2;
+                        const dy = (Math.random() - 0.5) * state.shake * 2;
+                        ctx.translate(dx, dy);
+                    }
+
+                    // Background
+                    ctx.fillStyle = '#111';
+                    ctx.fillRect(-20, -20, width+40, height+40); 
+
+                    // Lanes
+                    ctx.strokeStyle = '#222';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(laneWidth, 0); ctx.lineTo(laneWidth, height);
+                    ctx.moveTo(laneWidth * 2, 0); ctx.lineTo(laneWidth * 2, height);
+                    ctx.stroke();
+
+                    // Draw Batteries
+                    state.batteries.forEach(bat => {
+                        const x = ((bat.lane - 1) * laneWidth) + (laneWidth/2) - 15;
+                        ctx.fillStyle = '#00FF41';
+                        ctx.beginPath();
+                        ctx.moveTo(x + 15, bat.y);
+                        ctx.lineTo(x, bat.y + 20);
+                        ctx.lineTo(x + 10, bat.y + 20);
+                        ctx.lineTo(x + 5, bat.y + 40);
+                        ctx.lineTo(x + 30, bat.y + 15);
+                        ctx.lineTo(x + 20, bat.y + 15);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.shadowColor = '#00FF41';
+                        ctx.shadowBlur = 10;
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    });
+
+                    // Draw Obstacles
+                    state.obstacles.forEach(obs => {
+                        const x = ((obs.lane - 1) * laneWidth) + (laneWidth/2) - 25;
+                        ctx.fillStyle = obs.hit ? '#555' : '#FF5F00';
+                        ctx.fillRect(x, obs.y, 50, 50);
+                        ctx.fillStyle = obs.hit ? '#333' : '#CC4C00';
+                        ctx.fillRect(x + 5, obs.y + 5, 40, 40);
+                    });
+
+                    // Draw Player (Image Rotated 180deg)
+                    const playerX = ((state.playerLane - 1) * laneWidth) + (laneWidth/2) - 30; // Centered
+                    
+                    if (playerImg.current.complete) {
+                        ctx.save();
+                        // Move to center of player to rotate
+                        ctx.translate(playerX + 30, state.playerY + 30);
+                        ctx.rotate(Math.PI); // 180 degrees
+                        ctx.drawImage(playerImg.current, -30, -30, 60, 60);
+                        ctx.restore();
+                    } else {
+                        // Fallback Box
+                        ctx.fillStyle = '#EEE';
+                        ctx.fillRect(playerX, state.playerY, 60, 60);
+                    }
+
+                    // Draw CHASER (THE WOMAN)
+                    if (state.strikes >= 1) {
+                        // Distance logic: starts close (100px), drifts back as timer reduces
+                        const threatLevel = state.recoveryTimer / 600; // 1.0 to 0.0
+                        const chaserDist = 60 + ((1 - threatLevel) * 200); // 60px to 260px behind
+                        
+                        const chaserY = state.playerY + chaserDist + (Math.sin(state.frameCount * 0.1) * 10);
+                        
+                        // Fade out as she leaves
+                        ctx.globalAlpha = Math.min(1, threatLevel + 0.2); 
+                        
+                        const chaserX = ((state.playerLane - 1) * laneWidth) + (laneWidth/2);
+
+                        ctx.fillStyle = '#D946EF'; 
+                        ctx.beginPath();
+                        ctx.arc(chaserX, chaserY, 20, 0, Math.PI*2);
+                        ctx.fill();
+                        ctx.fillRect(chaserX - 20, chaserY + 20, 40, 50);
+                        ctx.fillStyle = '#FFF';
+                        ctx.font = 'bold 20px Arial';
+                        ctx.fillText('!', chaserX + 25, chaserY);
+                        
+                        ctx.globalAlpha = 1.0;
+                    }
+
+                    ctx.restore(); // Restore Shake transform
+
+                    // HUD: Score
+                    ctx.fillStyle = '#FFF';
+                    ctx.font = 'bold 20px JetBrains Mono';
+                    ctx.fillText(`${Math.floor(state.score / 10)}m`, 20, 40);
+
+                    // HUD: Battery Bar
+                    const barWidth = 100;
+                    const barHeight = 10;
+                    const barX = width - barWidth - 20;
+                    const barY = 25;
+                    ctx.strokeStyle = '#FFF';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(barX, barY, barWidth, barHeight);
+                    ctx.fillStyle = state.batteryLevel > 20 ? '#00FF41' : '#FF0000';
+                    ctx.fillRect(barX + 1, barY + 1, (barWidth - 2) * (state.batteryLevel / 100), barHeight - 2);
+                    ctx.fillStyle = '#AAA';
+                    ctx.font = '10px JetBrains Mono';
+                    ctx.fillText("Li-Po CHARGE", barX, barY - 5);
+
+                    if (gameState === 'PLAYING') {
+                        animationFrameId = requestAnimationFrame(loop);
+                    }
+                };
+
+                animationFrameId = requestAnimationFrame(loop);
+
+                return () => {
+                    cancelAnimationFrame(animationFrameId);
+                    window.removeEventListener('keydown', handleKeyDown);
+                    canvas.removeEventListener('touchstart', handleTouchStart);
+                    canvas.removeEventListener('touchend', handleTouchEnd);
+                };
+            }, [gameState]);
+
+            return (
+                <div className="flex flex-col items-center justify-center w-full h-[600px] bg-[#000] border border-[#333] relative overflow-hidden select-none">
+                    
+                    <canvas 
+                        ref={canvasRef} 
+                        width={350} 
+                        height={600} 
+                        className={`bg-[#050505] shadow-2xl ${gameState === 'PLAYING' ? '' : 'opacity-30'}`}
+                    />
+
+                    {/* MENU OVERLAY */}
+                    {gameState === 'MENU' && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 text-center">
+                            <h2 className="text-4xl font-black text-white mb-2 italic tracking-tighter">TRY SHY BOI</h2>
+                            <div className="text-[10px] text-gray-500 font-bold border border-gray-800 px-2 py-1 mb-4">V2.2 SIMULATION</div>
+                            <p className="text-gray-400 text-sm mb-6 max-w-xs px-4 leading-relaxed">
+                                AVOID OBSTACLES.<br/>
+                                <span className="text-[#00FF41]">COLLECT GREEN PACKS</span> TO CHARGE.<br/>
+                                <span className="text-[#FF5F00]">1ST HIT:</span> PANIC MODE (SURVIVE 10s).<br/>
+                                <span className="text-[#D946EF]">2ND HIT:</span> SYSTEM FAILURE.
+                            </p>
+                            <button 
+                                onClick={() => setGameState('PLAYING')}
+                                className="bg-[#FF5F00] hover:bg-[#ff7b2e] text-black font-bold py-4 px-10 rounded-full flex items-center gap-2 transition-transform transform active:scale-95"
+                            >
+                                <Gamepad2 size={24} /> INITIALIZE
+                            </button>
+                            <div className="mt-8 text-xs text-gray-500 font-mono">
+                                SWIPE or ARROW KEYS
+                            </div>
+                        </div>
+                    )}
+
+                    {/* GAME OVER OVERLAY */}
+                    {gameState === 'GAMEOVER' && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/90 text-center">
+                            <div className="text-[#D946EF] mb-4 animate-bounce">
+                                <ShieldAlert size={80} />
+                            </div>
+                            <h2 className="text-3xl font-black text-white mb-2 uppercase px-4 leading-none">
+                                {failReason === "BATTERY DEPLETED" ? "SYSTEM OFFLINE" : "SOCIAL OVERLOAD"}
+                            </h2>
+                            <p className="text-gray-400 text-sm mb-8 max-w-xs">
+                                {failReason === "BATTERY DEPLETED" 
+                                    ? "Li-Po battery levels critical. System shutdown initiated." 
+                                    : "Social anxiety threshold breached. Emergency evasion failed."}
+                            </p>
+                            <div className="text-2xl font-mono text-[#FF5F00] mb-8 border border-[#FF5F00] px-4 py-2">
+                                DISTANCE: {finalScore}m
+                            </div>
+                            <button 
+                                onClick={() => setGameState('PLAYING')}
+                                className="bg-white hover:bg-gray-200 text-black font-bold py-3 px-8 rounded-full"
+                            >
+                                REBOOT SYSTEM
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MAIN LAYOUT COMPONENT ---
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('overview');
+            const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+            useEffect(() => {
+                const handleResize = () => setIsMobile(window.innerWidth < 768);
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
+
+            const NavButton = ({ id, icon: Icon, label }) => (
+                <button 
+                    onClick={() => setActiveTab(id)}
+                    className={`
+                        flex flex-col md:flex-row items-center gap-2 p-3 rounded-lg transition-all md:w-full md:justify-start
+                        ${activeTab === id 
+                            ? 'text-[#FF5F00] md:bg-[#FF5F00]/10 md:border-r-4 md:border-[#FF5F00]' 
+                            : 'text-gray-500 hover:text-gray-300 hover:bg-[#1A1A1A]'}
+                    `}
+                >
+                    <Icon size={24} strokeWidth={activeTab === id ? 2.5 : 2} />
+                    <span className="text-[10px] md:text-sm font-bold uppercase tracking-wider">{label}</span>
+                </button>
+            );
+
+            return (
+                <div className="min-h-screen bg-[#050505] text-[#E0E0E0] md:pl-64 pb-20 md:pb-0">
+                    
+                    {/* DESKTOP SIDEBAR */}
+                    <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-[#0A0A0A] border-r border-[#222] flex-col p-6 z-50">
+                        <div className="mb-12">
+                            <h1 className="text-3xl font-black text-white tracking-tighter italic">SHY<span className="text-[#FF5F00]">.BOI</span></h1>
+                            <div className="text-[10px] text-gray-500 mt-1 font-mono">UNIT: ELEC-491-G6</div>
+                        </div>
+                        <div className="space-y-2">
+                            <NavButton id="overview" icon={Activity} label="Status" />
+                            <NavButton id="architecture" icon={Layers} label="Architecture" />
+                            <NavButton id="logs" icon={Terminal} label="Logs" />
+                            <NavButton id="game" icon={Gamepad2} label="Try Shy Boi" />
+                        </div>
+                        <div className="mt-auto pt-6 border-t border-[#222]">
+                            <div className="text-[10px] text-gray-600">
+                                ENG: B.KORUYUCU / E.TEYMUR<br/>
+                                ADVISOR: U.TEGIN
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* MOBILE TOP BAR */}
+                    <div className="md:hidden fixed top-0 left-0 w-full h-16 bg-[#0A0A0A] border-b border-[#222] flex items-center justify-between px-6 z-40">
+                         <h1 className="text-xl font-black text-white tracking-tighter italic">SHY<span className="text-[#FF5F00]">.BOI</span></h1>
+                         <div className="text-[10px] text-gray-500 font-bold border border-gray-800 px-2 py-1">V2.2</div>
+                    </div>
+
+                    {/* MAIN CONTENT */}
+                    <main className="pt-20 md:pt-12 px-6 md:px-12 max-w-6xl mx-auto">
+                        {activeTab === 'overview' && <OverviewContent />}
+                        {activeTab === 'architecture' && <ArchitectureContent />}
+                        {activeTab === 'logs' && <LogsContent />}
+                        {activeTab === 'game' && <GameContent />}
+                    </main>
+
+                    {/* MOBILE BOTTOM NAV */}
+                    <div className="md:hidden fixed bottom-0 left-0 w-full bg-[#0A0A0A] border-t border-[#222] z-50 px-2 py-2 pb-safe flex justify-around items-center">
+                        <NavButton id="overview" icon={Activity} label="Status" />
+                        <NavButton id="architecture" icon={Layers} label="Arch" />
+                        <NavButton id="logs" icon={Terminal} label="Logs" />
+                        <NavButton id="game" icon={Gamepad2} label="Sim" />
+                    </div>
+
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://t0ttora.github.io/shy_boi/sitemap.xml
